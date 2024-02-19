@@ -168,7 +168,7 @@ def create_efficiency_plots(numerator_list, denominator_list, minX, maxX, bins, 
         os.makedirs(plotDir)
 
     # Save the plot
-    plot_filename = os.path.join(plotDir,  f"{fileName}_{plotName}_{variable_name}.png")
+    plot_filename = os.path.join(plotDir,  f"{fileName}_{plotName}_{variable_name}_new.png")
     plt.savefig(plot_filename)
 
 def create_stack_efficiency_plots(numerator_list, denominator_list, minX, maxX, bins, variable_name, xTitle, yTitle, mainTitle, plotName, fileName):
@@ -219,7 +219,7 @@ def create_stack_efficiency_plots(numerator_list, denominator_list, minX, maxX, 
         os.makedirs(plotDir)
 
     # Save the plot
-    plot_filename = os.path.join(plotDir,  f"{fileName}_{plotName}_{variable_name}.png")
+    plot_filename = os.path.join(plotDir,  f"{fileName}_{plotName}_{variable_name}_new.png")
     plt.savefig(plot_filename)
 
 @njit
@@ -231,7 +231,7 @@ def find_track_idx(tracks, idx):
 
 @njit(parallel=True)
 def process_event(association_data, simTICLCandidates_data, TICLCandidates_data, tracks_data): 
-    num_events = 1000
+    num_events = 500 
 
     chg_all_sim_candidates = []
     chg_track_eff_sim_candidates = []
@@ -277,13 +277,7 @@ def process_event(association_data, simTICLCandidates_data, TICLCandidates_data,
                 candIdx = -1
                 if minScore < 1.:
                     maxSE = simToReco_mergeTracksterCP_sharedE[si][argminScore]
-                    for i, k in enumerate(TICLCandidates_ev.tracksters_in_candidate):
-                        if not len(k):
-                            continue
-                        for kk in k:
-                            if kk == simToReco_mergeTracksterCP[si][argminScore]:
-                                candIdx = i
-                                break
+                    candIdx = simToReco_mergeTracksterCP[si][argminScore]
                 if candIdx == -1:
                     continue
                 recoPid = TICLCandidates_ev.candidate_pdgId[candIdx]
@@ -318,15 +312,10 @@ def process_event(association_data, simTICLCandidates_data, TICLCandidates_data,
                         if maxSE / simEnergy > 0.5:
                             neu_energy_eff_sim_candidates.append(simTICLCandidate)
                 recoEnergy = TICLCandidates_ev.candidate_raw_energy[candIdx]
-                # if recoToSim_mergeTracksterPU_sharedE[candIdx][0] / recoEnergy > 0.95:
-                #     print("shared energy with PU", recoToSim_mergeTracksterPU_sharedE[candIdx][0] / recoEnergy)
 
             recoToSim_mergeTracksterCP = association_ev.Mergetracksters_recoToSim_CP
             recoToSim_mergeTracksterCP_score = association_ev.Mergetracksters_recoToSim_CP_score
             recoToSim_mergeTracksterCP_sharedE = association_ev.Mergetracksters_recoToSim_CP_sharedE
-            recoToSim_mergeTracksterPU = association_ev.Mergetracksters_recoToSim_PU
-            recoToSim_mergeTracksterPU_score = association_ev.Mergetracksters_recoToSim_PU_score
-            recoToSim_mergeTracksterPU_sharedE = association_ev.Mergetracksters_recoToSim_PU_sharedE
 
             # Fake
             for ri in range(len(recoToSim_mergeTracksterCP)):
@@ -336,20 +325,15 @@ def process_event(association_data, simTICLCandidates_data, TICLCandidates_data,
                 ts_idx = TICLCandidates_ev.tracksters_in_candidate[ri]
                 if len(ts_idx) == 0:
                     continue
-                ts_idx = ts_idx[0]
-                argminScore= argminNumba(recoToSim_mergeTracksterCP_score[ts_idx])
-                minScore = recoToSim_mergeTracksterCP_score[ts_idx][argminScore]
+                argminScore= argminNumba(recoToSim_mergeTracksterCP_score[ri])
+                minScore = recoToSim_mergeTracksterCP_score[ri][argminScore]
                 maxSE = 0.
                 candIdx = -1
                 si = -1
                 if minScore < 1.:
-                    maxSE = recoToSim_mergeTracksterCP_sharedE[ts_idx][argminScore]
-                    si = recoToSim_mergeTracksterCP[ts_idx][argminScore]
+                    maxSE = recoToSim_mergeTracksterCP_sharedE[ri][argminScore]
+                    si = recoToSim_mergeTracksterCP[ri][argminScore]
                 if si == -1:
-                    continue
-                #argminScorePU = argminNumba(recoToSim_mergeTracksterPU_score[ri])
-#                print("assoc with sim ", minScore, " shared energy with PU", recoToSim_mergeTracksterPU_sharedE[ts_idx][0] / recoEnergy, " shared energy with sim ", maxSE / recoEnergy)
-                if recoToSim_mergeTracksterPU_sharedE[ts_idx][0] / recoEnergy > 0.95:
                     continue
                 simPid = simTICLCandidates_ev.simTICLCandidate_pdgId[si]
                 simCharge = simTICLCandidates_ev.simTICLCandidate_charge[si]
@@ -386,11 +370,8 @@ def process_event(association_data, simTICLCandidates_data, TICLCandidates_data,
 #        #
 ##########
 
-fu = "/eos/user/a/aperego/Timing/new_root_files/D99/histo_0PU_v5.root"
-#fu = "/eos/user/a/aperego/SampleProduction/ParticleGunPionPU200/histo_200PU_v5.root"
-#fu = "/eos/user/a/aperego/SampleProduction/ParticleGunPionPU200_v5/histo_200PU_v5_new.root"
+fu = "/eos/user/a/aperego/Timing/new_root_files/D99/histo_0PU_v4.root"
 #fu = "/eos/user/a/aperego/SampleProduction/ParticleGunPionPU200_v4/histo_200PU_v4.root"
-#fu = "/data2/user/aperego/cmssw/PRtimingFelice/25288.0_SinglePiPt25Eta1p7_2p7+2026D99/histo.root"
 fileName = fu.split("/")[-1].replace(".root","")
 
 files = [fu]

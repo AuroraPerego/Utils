@@ -231,7 +231,7 @@ def find_track_idx(tracks, idx):
 
 @njit(parallel=True)
 def process_event(association_data, simTICLCandidates_data, TICLCandidates_data, tracks_data): 
-    num_events = 1000
+    num_events = 500
 
     chg_all_sim_candidates = []
     chg_track_eff_sim_candidates = []
@@ -318,15 +318,10 @@ def process_event(association_data, simTICLCandidates_data, TICLCandidates_data,
                         if maxSE / simEnergy > 0.5:
                             neu_energy_eff_sim_candidates.append(simTICLCandidate)
                 recoEnergy = TICLCandidates_ev.candidate_raw_energy[candIdx]
-                # if recoToSim_mergeTracksterPU_sharedE[candIdx][0] / recoEnergy > 0.95:
-                #     print("shared energy with PU", recoToSim_mergeTracksterPU_sharedE[candIdx][0] / recoEnergy)
 
             recoToSim_mergeTracksterCP = association_ev.Mergetracksters_recoToSim_CP
             recoToSim_mergeTracksterCP_score = association_ev.Mergetracksters_recoToSim_CP_score
             recoToSim_mergeTracksterCP_sharedE = association_ev.Mergetracksters_recoToSim_CP_sharedE
-            recoToSim_mergeTracksterPU = association_ev.Mergetracksters_recoToSim_PU
-            recoToSim_mergeTracksterPU_score = association_ev.Mergetracksters_recoToSim_PU_score
-            recoToSim_mergeTracksterPU_sharedE = association_ev.Mergetracksters_recoToSim_PU_sharedE
 
             # Fake
             for ri in range(len(recoToSim_mergeTracksterCP)):
@@ -346,10 +341,6 @@ def process_event(association_data, simTICLCandidates_data, TICLCandidates_data,
                     maxSE = recoToSim_mergeTracksterCP_sharedE[ts_idx][argminScore]
                     si = recoToSim_mergeTracksterCP[ts_idx][argminScore]
                 if si == -1:
-                    continue
-                #argminScorePU = argminNumba(recoToSim_mergeTracksterPU_score[ri])
-#                print("assoc with sim ", minScore, " shared energy with PU", recoToSim_mergeTracksterPU_sharedE[ts_idx][0] / recoEnergy, " shared energy with sim ", maxSE / recoEnergy)
-                if recoToSim_mergeTracksterPU_sharedE[ts_idx][0] / recoEnergy > 0.95:
                     continue
                 simPid = simTICLCandidates_ev.simTICLCandidate_pdgId[si]
                 simCharge = simTICLCandidates_ev.simTICLCandidate_charge[si]
